@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+
+workDir = File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__)
+$LOAD_PATH.push File.join(workDir, "/../lib")
+require 'gitutils'
+require 'jiraSOAP'
+
+if ARGV.empty?
+	puts "You should specified branch name: #{__FILE__} <branch-name>"
+	exit 1
+end
+
+branch_name = ARGV[0]
+repo = GitUtils::Repo.new '.'
+repo.fetch
+
+branch = repo.branch(branch_name)
+last_branch_commit = branch.gcommit
+
+puts "Git\n======"
+puts "Last commit date: #{last_branch_commit.date}"
+if branch.merged?
+	puts "Merged: #{branch.merge_commit.date}"
+else 
+	puts "Merged: no"
+end
+
+jira = JIRA::JIRAService.new 'http://jira.dev'
+jira.login 'zolotov', ''
+issue = jira.issue_with_key branch_name
+
+puts
+puts "JIRA\n======"
+puts "Summary: #{issue.summary}"
+puts "Status: #{jira.statuses.select{|status| issue.status_id == status.id}.first.name}"
+
