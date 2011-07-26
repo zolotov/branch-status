@@ -25,19 +25,26 @@ branch = repo.branch(branch_name)
 last_branch_commit = branch.gcommit
 
 puts "Git\n======"
-puts "Last commit date: #{last_branch_commit.date}"
-if branch.merged?
-	puts "Merged: #{branch.merge_commit.date}"
-else 
-	puts "Merged: no"
+begin
+	puts "Last commit date: #{last_branch_commit.date}"
+	if branch.merged?
+		puts "Merged: #{branch.merge_commit.date}"
+	else
+		puts "Merged: no"
+	end
+rescue
+	puts "Branch not found"
 end
-
-jira = JIRA::JIRAService.new 'http://jira.dev'
-jira.login @@config[:jira][:login], @@config[:jira][:password]
-issue = jira.issue_with_key branch_name
 
 puts ""
 puts "JIRA\n======"
-puts "Summary: #{issue.summary}"
-puts "Status: #{jira.statuses.select{|status| issue.status_id == status.id}.first.name}"
+begin
+	jira = JIRA::JIRAService.new 'http://jira.dev'
+	jira.login @@config[:jira][:login], @@config[:jira][:password]
+	issue = jira.issue_with_key branch_name
 
+	puts "Summary: #{issue.summary}"
+	puts "Status: #{jira.statuses.select{|status| issue.status_id == status.id}.first.name}"
+rescue
+	puts "Issue not found"
+end
