@@ -64,7 +64,6 @@ module GitUtils
 				@repo.branch('no-merged').merge_commit.should be_nil
 			end
 		end
-
 	end
 
 end
